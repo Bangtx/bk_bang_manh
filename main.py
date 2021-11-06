@@ -104,8 +104,7 @@ def main():
             for i in decode(imgOrignal):
                 id = i.data.decode('utf-8')
                 data_student = db.select_by_id(int(id))
-                print(data_student)
-                cv2.putText(imgOrignal, id, (70, 100), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
+                cv2.putText(imgOrignal, data_student[1], (70, 100), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
                 Label(win, text=f"Tên: {data_student[1]}", font='times 16').place(width=200, heigh=30, x=30, y=250)
                 Label(win, text=f"Lớp:  {data_student[2]}", font='times 16').place(width=200, heigh=30, x=30,
                                                                                          y=300)
