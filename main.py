@@ -7,6 +7,10 @@ import numpy as np
 from keras.models import load_model
 from pyzbar.pyzbar import decode
 from database import DB
+import pyttsx3
+
+app_say = 'Please wear a mask'
+say_init = pyttsx3.init()
 
 win = Tk()
 win.title('Giám Sát Nhiệt Độ')
@@ -49,7 +53,7 @@ def get_className(classNo):
 
 
 def main():
-    global icon, img_cam, canvas, photo, isCheckQrCode, id
+    global icon, img_cam, canvas, photo, isCheckQrCode, id, say_init
     Label(win, text='Student').place(width=100, heigh=30, x=0, y=0)
     Label(win, image=icon).place(width=100, heigh=120, x=80, y=100)
     Label(win, text=f"Tên: ", font='times 16').place(width=200, heigh=30, x=30, y=250)
@@ -66,7 +70,7 @@ def main():
     cap = cv2.VideoCapture(0)
 
     def update():
-        global photo, name, isCheckQrCode, id
+        global photo, name, isCheckQrCode, id, say_init
 
         sucess, imgOrignal = cap.read()
         faces = facedetect.detectMultiScale(imgOrignal, 1.3, 5)
@@ -85,6 +89,8 @@ def main():
                 probabilityValue = np.amax(prediction)
                 if probabilityValue > threshold:
                     if classIndex == 0:
+                        say_init.say(app_say)
+                        say_init.runAndWait()
                         cv2.rectangle(imgOrignal, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.rectangle(imgOrignal, (x, y - 40), (x + w, y), (0, 255, 0), -2)
                         cv2.putText(imgOrignal, str(get_className(classIndex)), (x, y - 10), font, 0.75, (255, 255, 255), 1,
