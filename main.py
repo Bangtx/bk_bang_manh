@@ -6,13 +6,17 @@ import warnings
 import numpy as np
 from keras.models import load_model
 from pyzbar.pyzbar import decode
+from database import DB
 
 win = Tk()
 win.title('Giám Sát Nhiệt Độ')
 icon = Image.open('icon/male-student.png')
 icon = icon.resize((100, 120), Image.ANTIALIAS)
 icon = ImageTk.PhotoImage(icon)
+
+db = DB()
 isCheckQrCode = True
+id = None
 
 width_screen = win.winfo_screenwidth()
 hieght_screen = win.winfo_screenheight()
@@ -45,12 +49,12 @@ def get_className(classNo):
 
 
 def main():
-    global icon, img_cam, canvas, photo
+    global icon, img_cam, canvas, photo, isCheckQrCode, id
     Label(win, text='Student').place(width=100, heigh=30, x=0, y=0)
     Label(win, image=icon).place(width=100, heigh=120, x=80, y=100)
-    Label(win, text=f'Tên: student name', font='times 16').place(width=200, heigh=30, x=30, y=250)
-    Label(win, text=f'Lớp: student name', font='times 16').place(width=200, heigh=30, x=30, y=300)
-    Label(win, text=f'Giới Tính: student name', font='times 16').place(width=200, heigh=30, x=30, y=350)
+    Label(win, text=f"Tên: ", font='times 16').place(width=200, heigh=30, x=30, y=250)
+    Label(win, text=f"Lớp: ", font='times 16').place(width=200, heigh=30, x=30, y=300)
+    Label(win, text=f"Giới Tính: ", font='times 16').place(width=200, heigh=30, x=30, y=350)
 
     Label(win, text='Code').place(width=100, heigh=30, x=400, y=0)
     Label(win, image=icon).place(width=100, heigh=120, x=380, y=100)
@@ -62,10 +66,11 @@ def main():
     cap = cv2.VideoCapture(0)
 
     def update():
-        global photo
+        global photo, name, isCheckQrCode, id
+
         sucess, imgOrignal = cap.read()
         faces = facedetect.detectMultiScale(imgOrignal, 1.3, 5)
-        if not isCheckQrCode:
+        if isCheckQrCode == False:
             for x, y, w, h in faces:
                 # cv2.rectangle(imgOrignal,(x,y),(x+w,y+h),(50,50,255),2)
                 # cv2.rectangle(imgOrignal, (x,y-40),(x+w, y), (50,50,255),-2)
@@ -91,8 +96,18 @@ def main():
                                     cv2.LINE_AA)
         else:
             for i in decode(imgOrignal):
-                name = i.data.decode('utf-8')
-                cv2.putText(imgOrignal, name, (50, 30), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+                id = i.data.decode('utf-8')
+                data_student = db.select_by_id(int(id))
+                print(data_student)
+                cv2.putText(imgOrignal, id, (70, 100), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
+                Label(win, text=f"Tên: {data_student[1]}", font='times 16').place(width=200, heigh=30, x=30, y=250)
+                Label(win, text=f"Lớp:  {data_student[2]}", font='times 16').place(width=200, heigh=30, x=30,
+                                                                                         y=300)
+                Label(win, text=f"Giới Tính:  {data_student[3]}", font='times 16').place(width=200, heigh=30, x=30,
+                                                                                             y=350)
+                isCheckQrCode = False
+                id = None
+
 
         img_cam = cv2.cvtColor(imgOrignal, cv2.COLOR_BGR2RGB)
         photo = ImageTk.PhotoImage(image=Image.fromarray(img_cam).resize((550, 450), Image.ANTIALIAS))
